@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: nikans
- * Date: 27/11/14
- * Time: 10:14 PM
- */
 
 require_once('php/SqlFormatter.php');
 
@@ -112,14 +106,13 @@ if (isset($_POST['analyze'])) {
 ?>
 
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Core Data Queries Analyzer</title>
+    <title>Core Data Debug Log Analyzer</title>
 
     <!-- Bootstrap -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
@@ -163,7 +156,7 @@ if (isset($_POST['analyze'])) {
 <div class="container">
     <div class="row">
         <div class="col-xs-12">
-            <h1>Core Data Queries Analyzer</h1>
+            <h1>Core Data Debug Log Analyzer</h1>
 
             <div class="panel panel-default" style="margin-top:30px;">
                 <div class="panel-heading">
@@ -180,7 +173,7 @@ if (isset($_POST['analyze'])) {
 
             <form action="#" method="post" role="form">
                 <div class="form-group">
-                    <label for="log">Copy your log here</label>
+                    <label for="log">Paste your log here</label>
                     <textarea name="log" id="log" class="form-control monospace" rows="<?php echo empty($requests_to_sort) ? '10' : '3'; ?>"></textarea>
                 </div>
                 <input type="submit" name="analyze" value="Analyze" class="btn btn-primary" />
