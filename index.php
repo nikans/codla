@@ -139,10 +139,26 @@ if (isset($_POST['analyze'])) {
         .monospace { font-family: "Monaco", "Inconsolata", "Consolas", monospace; word-wrap:break-word; word-break:break-all; }
         .sql       { background-color:transparent !important; white-space:pre-wrap; }
         #modeTabs  { border-bottom:none; margin-bottom:1px; }
+        .navbar-brand img { height:40px; position:relative; top:-10px; }
+        body       { padding-top:60px; }
     </style>
 
 </head>
 <body>
+
+<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="http://cocoaheads.ru/">
+                <img alt="CocoaHeads MSK" src="img/logo-cocoaheads.png">
+            </a>
+        </div>
+        <p class="navbar-text navbar-right">
+            <a href="http://cocoaheads.ru/" class="navbar-link">CocoaHeads Moscow</a> &middot;
+            <a href="https://github.com/CocoaHeadsMsk/coredata-query-analyser" class="navbar-link">GitHub</a>
+        </p>
+    </div>
+</nav>
 
 <div class="container">
     <div class="row">
@@ -171,99 +187,99 @@ if (isset($_POST['analyze'])) {
             </form>
         </div>
     </div>
-<?php
+    <?php
 
-if(!empty($requests_to_sort)) {
-    ?>
+    if(!empty($requests_to_sort)) {
+        ?>
 
-    <div class="row" style="margin-top:50px;">
-        <div class="col-xs-12">
+        <div class="row" style="margin-top:50px;">
+            <div class="col-xs-12">
 
-            <div class="panel panel-default">
-                <div class="panel-body">
-                    Analytics tab displays only queries with logged execution time. You can trace all queries in Log tab.
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        Analytics tab displays only queries with logged execution time. You can trace all queries in Log tab.
+                    </div>
                 </div>
-            </div>
 
-            <div role="tabpanel">
+                <div role="tabpanel">
 
-                <!-- Nav tabs -->
-                <ul class="nav nav-tabs" role="tablist" id="modeTabs">
-                    <li role="presentation" class="active"><a href="#analytics" role="tab" data-toggle="tab">Analytics</a></li>
-                    <li role="presentation"><a href="#queries" role="tab" data-toggle="tab">Log</a></li>
-                </ul>
+                    <!-- Nav tabs -->
+                    <ul class="nav nav-tabs" role="tablist" id="modeTabs">
+                        <li role="presentation" class="active"><a href="#analytics" role="tab" data-toggle="tab">Analytics</a></li>
+                        <li role="presentation"><a href="#queries" role="tab" data-toggle="tab">Log</a></li>
+                    </ul>
 
-                <!-- Tab panes -->
-                <div class="tab-content">
-                    <div role="tabpanel" class="tab-pane active" id="analytics">
+                    <!-- Tab panes -->
+                    <div class="tab-content">
+                        <div role="tabpanel" class="tab-pane active" id="analytics">
 
-                        <table class="table table-bordered">
-                            <tr>
-                                <th>Total time</th>
-                                <th>Count</th>
-                                <th>Avg time</th>
-                                <th>Min time</th>
-                                <th>Max time</th>
-                                <th>Request</th>
-                            </tr>
-                            <?php
+                            <table class="table table-bordered">
+                                <tr>
+                                    <th>Total time</th>
+                                    <th>Count</th>
+                                    <th>Avg time</th>
+                                    <th>Min time</th>
+                                    <th>Max time</th>
+                                    <th>Request</th>
+                                </tr>
+                                <?php
 
-                            foreach($requests_to_sort as $request) {
-                                $avg_time = round(($request['total_time']/$request['count']), 3);
+                                foreach($requests_to_sort as $request) {
+                                    $avg_time = round(($request['total_time']/$request['count']), 3);
 
-                                ?><tr class="monospace <?php echo ($avg_time > 0.5 ? "danger" : ($avg_time > 0.2 ? "warning" : "" )); ?>">
-                                <td class="nobr"><?=$request['total_time'];?></td>
-                                <td class="nobr"><?=$request['count'];?></td>
-                                <td class="nobr"><?=$avg_time;?></td>
-                                <td class="nobr"><?=$request['min_time'];?></td>
-                                <td class="nobr"><?=$request['max_time'];?></td>
-                                <td>
-                                    <div class="sql-request sql"><?=SqlFormatter::format($request['request'], false);?></div>
-                                </td>
-                                </tr><?php
-                            }
+                                    ?><tr class="monospace <?php echo ($avg_time > 0.5 ? "danger" : ($avg_time > 0.2 ? "warning" : "" )); ?>">
+                                    <td class="nobr"><?=$request['total_time'];?></td>
+                                    <td class="nobr"><?=$request['count'];?></td>
+                                    <td class="nobr"><?=$avg_time;?></td>
+                                    <td class="nobr"><?=$request['min_time'];?></td>
+                                    <td class="nobr"><?=$request['max_time'];?></td>
+                                    <td>
+                                        <div class="sql-request sql"><?=SqlFormatter::format($request['request'], false);?></div>
+                                    </td>
+                                    </tr><?php
+                                }
 
-                            ?>
-                        </table>
+                                ?>
+                            </table>
+                        </div>
+
+                        <div role="tabpanel" class="tab-pane" id="queries">
+
+                            <table class="table table-bordered">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Total time</th>
+                                    <th>Connection time</th>
+                                    <th>Fetch time</th>
+                                    <th>Fetched rows</th>
+                                    <th>Request</th>
+                                    <th>Transaction</th>
+                                </tr>
+                                <?php
+
+                                foreach($requests_log as $id => $request) {
+                                    ?><tr class="monospace <?php echo (@$request['isTransaction'] ? "warning" : ""); ?>">
+                                    <td class="nobr"><?=$id;?></td>
+                                    <td class="nobr"><?=@$request['fetchTime']+@$request['connectionTime'];?></td>
+                                    <td class="nobr"><?=@$request['fetchTime'];?></td>
+                                    <td class="nobr"><?=@$request['connectionTime'];?></td>
+                                    <td class="nobr"><?=@$request['fetchRows'];?></td>
+                                    <td>
+                                        <div class="sql-request sql"><?=SqlFormatter::format($request['request'], false);?></div>
+                                    </td>
+                                    <td class="nobr"><?php echo @$request['isTransaction'] ? '<span class="glyphicon glyphicon-ok"></span>' : '';?></td>
+                                    </tr><?php
+                                }
+
+                                ?>
+                            </table>
+
+                        </div>
+
                     </div>
-
-                    <div role="tabpanel" class="tab-pane" id="queries">
-
-                        <table class="table table-bordered">
-                            <tr>
-                                <th>#</th>
-                                <th>Total time</th>
-                                <th>Connection time</th>
-                                <th>Fetch time</th>
-                                <th>Fetched rows</th>
-                                <th>Request</th>
-                                <th>Transaction</th>
-                            </tr>
-                            <?php
-
-                            foreach($requests_log as $id => $request) {
-                                ?><tr class="monospace <?php echo (@$request['isTransaction'] ? "warning" : ""); ?>">
-                                <td class="nobr"><?=$id;?></td>
-                                <td class="nobr"><?=@$request['fetchTime']+@$request['connectionTime'];?></td>
-                                <td class="nobr"><?=@$request['fetchTime'];?></td>
-                                <td class="nobr"><?=@$request['connectionTime'];?></td>
-                                <td class="nobr"><?=@$request['fetchRows'];?></td>
-                                <td>
-                                    <div class="sql-request sql"><?=SqlFormatter::format($request['request'], false);?></div>
-                                </td>
-                                <td class="nobr"><?php echo @$request['isTransaction'] ? '<span class="glyphicon glyphicon-ok"></span>' : '';?></td>
-                                </tr><?php
-                            }
-
-                            ?>
-                        </table>
-
-                    </div>
-
                 </div>
             </div>
         </div>
-    </div>
 
     <?php
     }
