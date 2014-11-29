@@ -142,15 +142,23 @@ if (isset($_POST['analyze'])) {
         .sql       { background-color:transparent !important; white-space:pre-wrap; }
         #modeTabs  { border-bottom:none; margin-bottom:1px; }
         .navbar-brand img { height:40px; position:relative; top:-10px; }
-        body       { padding-top:60px; padding-bottom:30px; }
+        body       { padding-bottom:30px; }
+        .navbar-header { float: left; }
+        .navbar-right { float: right; }
+        
+        @media (min-width: 768px) {
+        
+        .navbar-right { margin-right: 0; }
+        
+        }
     </style>
 
 </head>
 <body>
 
-<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+<nav class="navbar navbar-default" role="navigation">
     <div class="container">
-        <div class="navbar-header hidden-xs">
+        <div class="navbar-header">
             <a class="navbar-brand" href="http://cocoaheads.ru/">
                 <img alt="CocoaHeads MSK" src="img/logo-cocoaheads.png">
             </a>
@@ -172,7 +180,7 @@ if (isset($_POST['analyze'])) {
                     <h3 class="panel-title">What is it and how to use this</h3>
                 </div>
                 <div class="panel-body">
-                    <p>This scripts analyses CoreData debug log, aggregates similar queries, produces statistics and formats messed-up queries into readable ones.</p>
+                    <p>This scripts analyzes CoreData debug log, aggregates similar queries, produces statistics and formats messed-up queries into readable ones.</p>
                     <ol>
                         <li>Add <code>-com.apple.CoreData.SQLDebug 1</code> to your target schema's "Arguments Passed On Launch"</li>
                         <li>Copy run log and paste it here. This is an early beta so the script may choke if the log is too huge :)</li>
