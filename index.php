@@ -1,11 +1,8 @@
 <?php
 
 require_once('php/SqlFormatter.php');
+define('max_log_lines', 300);
 
-$requests = array();
-$request_data = array();
-$requests_log = array();
-$isTransaction = 0;
 
 if (isset($_POST['analyze'])) {
     $log = trim($_POST['log']);
@@ -13,14 +10,24 @@ if (isset($_POST['analyze'])) {
     unset($log);
     $logArray = array_filter($logArray, 'trim');
 
+    $requests = array();
+    $requests_log = array();
+
+    $request_data = array();
+    $isTransaction = 0;
+    $request_count = 0;
+
     foreach ($logArray as $line) {
 
         if(preg_match("/^.*sql: (.*)$/", $line, $matches)) {
 
             if(!empty($request_data)) {
+                $request_count++;
                 $request_data['isTransaction'] = $isTransaction;
                 $requests[addslashes($request_data['request'])][] = $request_data;
-                $requests_log[] = $request_data;
+
+                if($request_count <= max_log_lines)
+                    $requests_log[] = $request_data;
             }
 
             $request_data = array();
@@ -39,20 +46,22 @@ if (isset($_POST['analyze'])) {
             $isTransaction = 1;
         }
 
-        if(preg_match("/^.*annotation: sql connection fetch time: (.*)s.*$/", $line, $matches)) {
+        if(preg_match("/^.*annotation: sql connection fetch time: (.*)s./", $line, $matches)) {
             $request_data['connectionTime'] = $matches[1];
         }
 
-        if(preg_match("/^.*annotation: total fetch execution time: (.*)s for (.) rows.*$/", $line, $matches)) {
+        if(preg_match("/^.*annotation: total fetch execution time: (.*)s for (.) rows./", $line, $matches)) {
             $request_data['fetchTime'] = $matches[1];
             $request_data['fetchRows'] = $matches[2];
         }
 
-        if(preg_match("/^.*annotation: sql execution time: (.*)s.*$/", $line, $matches)) {
+        if(preg_match("/^.*annotation: sql execution time: (.*)s./", $line, $matches)) {
             $request_data['fetchTime'] = $matches[1];
         }
     }
 
+    if($request_count > max_log_lines)
+        unset($requests_log);
     unset($request_data);
     unset($logArray);
 
@@ -133,7 +142,7 @@ if (isset($_POST['analyze'])) {
         .sql       { background-color:transparent !important; white-space:pre-wrap; }
         #modeTabs  { border-bottom:none; margin-bottom:1px; }
         .navbar-brand img { height:40px; position:relative; top:-10px; }
-        body       { padding-top:60px; }
+        body       { padding-top:60px; padding-bottom:30px; }
     </style>
 
 </head>
@@ -141,7 +150,7 @@ if (isset($_POST['analyze'])) {
 
 <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
     <div class="container">
-        <div class="navbar-header">
+        <div class="navbar-header hidden-xs">
             <a class="navbar-brand" href="http://cocoaheads.ru/">
                 <img alt="CocoaHeads MSK" src="img/logo-cocoaheads.png">
             </a>
@@ -238,34 +247,49 @@ if (isset($_POST['analyze'])) {
 
                         <div role="tabpanel" class="tab-pane" id="queries">
 
-                            <table class="table table-bordered">
-                                <tr>
-                                    <th>#</th>
-                                    <th>Total time</th>
-                                    <th>Connection time</th>
-                                    <th>Fetch time</th>
-                                    <th>Fetched rows</th>
-                                    <th>Request</th>
-                                    <th>Transaction</th>
-                                </tr>
-                                <?php
-
-                                foreach($requests_log as $id => $request) {
-                                    ?><tr class="monospace <?php echo (@$request['isTransaction'] ? "warning" : ""); ?>">
-                                    <td class="nobr"><?=$id;?></td>
-                                    <td class="nobr"><?=@$request['fetchTime']+@$request['connectionTime'];?></td>
-                                    <td class="nobr"><?=@$request['fetchTime'];?></td>
-                                    <td class="nobr"><?=@$request['connectionTime'];?></td>
-                                    <td class="nobr"><?=@$request['fetchRows'];?></td>
-                                    <td>
-                                        <div class="sql-request sql"><?=SqlFormatter::format($request['request'], false);?></div>
-                                    </td>
-                                    <td class="nobr"><?php echo @$request['isTransaction'] ? '<span class="glyphicon glyphicon-ok"></span>' : '';?></td>
-                                    </tr><?php
-                                }
-
+                            <?php
+                            if($request_count > max_log_lines) {
                                 ?>
-                            </table>
+                                <div class="panel panel-default">
+                                    <div class="panel-body">
+                                        Log file is too goddamn huge (more than <?=max_log_lines;?> requests). Only analytics is generated.
+                                    </div>
+                                </div>
+                            <?php
+                            }
+                            else {
+                                ?>
+                                <table class="table table-bordered">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Total time</th>
+                                        <th>Connection time</th>
+                                        <th>Fetch time</th>
+                                        <th>Fetched rows</th>
+                                        <th>Request</th>
+                                        <th>Transaction</th>
+                                    </tr>
+                                    <?php
+
+                                    foreach($requests_log as $id => $request) {
+                                        ?><tr class="monospace <?php echo (@$request['isTransaction'] ? "warning" : ""); ?>">
+                                        <td class="nobr"><?=$id;?></td>
+                                        <td class="nobr"><?=@$request['fetchTime']+@$request['connectionTime'];?></td>
+                                        <td class="nobr"><?=@$request['fetchTime'];?></td>
+                                        <td class="nobr"><?=@$request['connectionTime'];?></td>
+                                        <td class="nobr"><?=@$request['fetchRows'];?></td>
+                                        <td>
+                                            <div class="sql-request sql"><?=SqlFormatter::format($request['request'], false);?></div>
+                                        </td>
+                                        <td class="nobr"><?php echo @$request['isTransaction'] ? '<span class="glyphicon glyphicon-ok"></span>' : '';?></td>
+                                        </tr><?php
+                                    }
+
+                                    ?>
+                                </table>
+                            <?php
+                            }
+                            ?>
 
                         </div>
 
@@ -299,7 +323,7 @@ if (isset($_POST['analyze'])) {
             dataType: 'json',
             crossDomain: true,
             data: {sql: $('#sql').val(), reindent: 1},
-            success: onSuccess,
+            success: onSuccess
         });
     })
 </script>
